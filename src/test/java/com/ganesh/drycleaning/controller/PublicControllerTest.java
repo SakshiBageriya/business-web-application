@@ -1,0 +1,8 @@
+package com.ganesh.drycleaning.controller;
+import com.ganesh.drycleaning.service.*;import com.ganesh.drycleaning.security.*;import com.ganesh.drycleaning.config.SecurityConfig;import com.ganesh.drycleaning.repository.AdminUserRepository;import org.junit.jupiter.api.Test;import org.springframework.beans.factory.annotation.Autowired;import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;import org.springframework.boot.test.mock.mockito.MockBean;import org.springframework.context.annotation.Import;import org.springframework.test.web.servlet.MockMvc;import org.springframework.http.MediaType;import java.util.List;import static org.mockito.Mockito.*;import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+@WebMvcTest(PublicController.class) @Import({SecurityConfig.class,JwtFilter.class}) class PublicControllerTest {
+ @Autowired MockMvc mvc;@MockBean ContentService content;@MockBean PickupService pickups;@MockBean JwtService jwt;@MockBean AdminUserRepository users;
+ @Test void servicesArePublic()throws Exception{when(content.services()).thenReturn(List.of());mvc.perform(get("/api/services")).andExpect(status().isOk()).andExpect(content().json("[]"));}
+ @Test void invalidPickupHasFieldErrors()throws Exception{mvc.perform(post("/api/pickups").contentType(MediaType.APPLICATION_JSON).content("{}" )).andExpect(status().isBadRequest()).andExpect(jsonPath("$.errors.name").exists());verifyNoInteractions(pickups);}
+ @Test void adminRequiresAuthentication()throws Exception{mvc.perform(get("/api/admin/pickups")).andExpect(status().isUnauthorized());}
+}
